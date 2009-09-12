@@ -175,12 +175,6 @@ class phptagengine {
 	 * @var string
 	 */
 	var $version;
-	/**
-	 * Show or hide error messages
-	 *
-	 * @var boolean
-	 */
-	var $debug;
 	
 	/**
 	 * Initializes the class
@@ -201,11 +195,12 @@ class phptagengine {
 		$this->delete_button_display = 'text';
 		$this->yac = true;
 		$this->yac_files = array(
-			'yahoo-dom-event.js'
+			'yahoo.js'
+			,'dom.js'
+			,'event.js'
 			,'autocomplete.js'
 		);
-		$this->version = '1.01';
-		$this->debug = false;
+		$this->version = '1.0';
 	}
 	
 	/**
@@ -298,14 +293,14 @@ class phptagengine {
 			VALUES 
 			( ".$this->db->qstr($tag)."			
 			)
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		
 		if ($result) {
 			$id = false;
 			if (strstr($this->db->databaseType, 'postgres')) {
 				$id = $this->db->GetOne("
 					SELECT CURRVAL('".$this->table_tag_names."_id_seq') as id
-				") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+				") or die($this->db->ErrorMsg());
 			}
 			else {
 				$id = $this->db->Insert_ID();
@@ -359,7 +354,7 @@ class phptagengine {
 				, ".$this->db->qstr($tag_id)."
 				, ".$this->db->DBDate(date("Y-m-d H:i:s"))."
 				)
-			") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+			") or die($this->db->ErrorMsg().' in '.__FILE__);
 			if ($result) {
 				return true;
 			}
@@ -452,7 +447,7 @@ class phptagengine {
 			DELETE
 			FROM $this->table_tags
 			WHERE id = ".$this->db->qstr($id)."
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		if ($result) {
 			return true;
 		}
@@ -501,7 +496,7 @@ class phptagengine {
 			WHERE 1 = 1
 			$where
 			ORDER BY tn.name
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		if ($result && $result->RowCount() > 0) {
 			while ($data = $result->FetchNextObject()) {
 				$tags['id_'.$data->ID] = $data->NAME;
@@ -528,7 +523,7 @@ class phptagengine {
 			DELETE
 			FROM $this->table_tags
 			WHERE tag = '$tag_id'
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		if (!$result) {
 			return false;
 		}
@@ -536,7 +531,7 @@ class phptagengine {
 			DELETE
 			FROM $this->table_tag_names
 			WHERE id = '$tag_id'
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		if (!$result) {
 			return false;
 		}
@@ -565,7 +560,7 @@ class phptagengine {
 				UPDATE $this->table_tags
 				SET tag = '$new_tag_id'
 				WHERE tag = '$old_tag_id'
-			") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+			") or die($this->db->ErrorMsg().' in '.__FILE__);
 			if (!$result) {
 				return false;
 			}
@@ -574,7 +569,7 @@ class phptagengine {
 				SELECT *
 				FROM $this->table_tags
 				WHERE tag = '$new_tag_id'
-			") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+			") or die($this->db->ErrorMsg().' in '.__FILE__);
 			if (!$result) {
 				return false;
 			}
@@ -596,7 +591,7 @@ class phptagengine {
 						DELETE
 						FROM $this->table_tags
 						WHERE id IN (".implode(',', $ids_to_delete).")
-					") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+					") or die($this->db->ErrorMsg().' in '.__FILE__);
 					if (!$result) {
 						return false;
 					}
@@ -608,7 +603,7 @@ class phptagengine {
 				UPDATE $this->table_tag_names
 				SET name = ".$this->db->qstr($new_tag)."
 				WHERE name = ".$this->db->qstr($old_tag)."
-			") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+			") or die($this->db->ErrorMsg().' in '.__FILE__);
 			if (!$result) {
 				return false;
 			}
@@ -654,7 +649,7 @@ class phptagengine {
 			WHERE 1 = 1
 			$where
 			ORDER BY t.item, tn.name
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		if ($result) {
 			while ($data = $result->FetchNextObject()) {
 				if (!isset($this->item_tags_cache['item_'.$data->ITEM])) {
@@ -680,7 +675,7 @@ class phptagengine {
 			SELECT id AS ID
 			FROM $this->table_tag_names
 			WHERE name = ".$this->db->qstr($name)."
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		if ($result && $result->RowCount() == 1) {
 			while ($data = $result->FetchNextObject()) {
 				return $data->ID;
@@ -818,7 +813,7 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 			JOIN $this->table_tags t
 			ON tn.id = t.tag
 			ORDER BY tn.name
-		") or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+		") or die($this->db->ErrorMsg().' in '.__FILE__);
 		if ($result) {
 			while ($data = $result->FetchNextObject()) {
 				if (!isset($tags['id_'.$data->ID])) {
@@ -912,7 +907,7 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 	 * @param string $item
 	 * @param mixed $type
 	 */
-	function html_item_tags($item, $type = null, $user = null, $use_cache = false, $read_only = false) {
+	function html_item_tags($item, $type = null, $user = null, $use_cache = false) {
 		$user = $this->default_value('user', $user);
 		$type = $this->default_value('type', $type);
 		$tags = $this->get_tags($item, $type, $user, $use_cache);
@@ -934,7 +929,7 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 				print('
 						<li id="pte_tag_'.$item.'_'.$tag.'"><a href="'.$this->tag_browse_url($tag, $type).'">'.$this->html($tag).'</a>
 				');
-				if ($this->show_remove_links && !$read_only) {
+				if ($this->show_remove_links) {
 					print('
 							<a href="javascript:void(pte.remove_tag(\''.$item.'\', \''.$tag.'\', \''.$type.'\'));" title="'.$this->strings['action_delete'].'">'.$this->button_display('delete').'</a>
 					');
@@ -951,26 +946,19 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 			');
 			$edit_value = '';
 		}
-		if ($read_only) {
-			print('
-					</ul>
-				</form>
-			');
-		}
-		else {
-			print('
+		print('
 						<li class="pte_edit"><a href="javascript:void(pte.item_tag_view(\''.$item.'\', \'edit\'));">'.$this->button_display('edit').'</a></li>
 					</ul>
 					<fieldset id="pte_tags_edit_'.$item.'" class="pte_tags_edit">
 						<div class="pte_edit_wrapper">
 							<input type="text" id="pte_tags_edit_field_'.$item.'" class="pte_tags_edit_field" name="tags" value="'.$edit_value.'" />
-			');
-			if ($this->yac) {
-				print('
-							<div id="yac_container_'.$item.'" class="yac_list"></div>
-				');
-			}
+		');
+		if ($this->yac) {
 			print('
+							<div id="yac_container_'.$item.'" class="yac_list"></div>
+			');
+		}
+		print('
 						</div>
 						<input type="submit" name="submit_button" value="'.$this->strings['action_save'].'" />
 						<input type="button" name="cancel_button" value="'.$this->strings['action_cancel'].'" onclick="pte.item_tag_view(\''.$item.'\', \'view\')" />
@@ -979,17 +967,16 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 					<span id="pte_tags_saving_'.$item.'" class="pte_tags_saving">'.$this->strings['action_saving'].'</span>
 				</form>
 			</div>
+		');
+		if ($this->yac) {
+			print('
+			<script type="text/javascript"><!--
+			yac_'.$item.' = new YAHOO.widget.AutoComplete("pte_tags_edit_field_'.$item.'","yac_container_'.$item.'", yac_tags);
+			yac_'.$item.'.delimChar = " ";
+			yac_'.$item.'.maxResultsDisplayed = 20;
+			yac_'.$item.'.queryDelay = 0;
+			// --></script>
 			');
-			if ($this->yac) {
-				print('
-				<script type="text/javascript"><!--
-				yac_'.$item.' = new YAHOO.widget.AutoComplete("pte_tags_edit_field_'.$item.'","yac_container_'.$item.'", yac_tags);
-				yac_'.$item.'.delimChar = " ";
-				yac_'.$item.'.maxResultsDisplayed = 20;
-				yac_'.$item.'.queryDelay = 0;
-				// --></script>
-				');
-			}
 		}
 		print('<!-- PHP Tag Engine html_item_tags for '.$item.' - end -->'."\n");
 	}
@@ -1192,7 +1179,7 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 					$table
 					,$data
 				)
-			) or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+			) or die($this->db->ErrorMsg().' on '.__LINE__.' in '.__FILE__);
 			
 			if ($result) {
 				if (isset($indexes[$table]) && count($indexes[$table]) > 0) {
@@ -1209,7 +1196,7 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 								,'`'.$index.'`'
 								,$extra
 							)
-						) or die(throw_error($this->db->ErrorMsg(), __FILE__, __LINE__));
+						) or die($this->db->ErrorMsg().' on '.__LINE__.' in '.__FILE__);
 						if (!$result) {
 							$error++;
 						}
@@ -1225,17 +1212,6 @@ var yac_tags = new YAHOO.widget.DS_JSArray(tags);
 		}
 		else {
 			return false;
-		}
-	}
-	
-	/**
-	 * Print error, or not, depending on debug setting.
-	 *
-	 * @return string
-	 */
-	function throw_error($msg, $file, $line) {
-		if ($this->debug) {
-			return $msg.' in '.$file.' on line: '.$line;
 		}
 	}
 }
